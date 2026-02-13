@@ -66,7 +66,11 @@ class SafeCodeModel(nn.Module):
             transformer_mask = None
         
         transformer_output = self.transformerlayer(x, src_key_padding_mask=transformer_mask)
-        pooled = torch.mean(transformer_output, dim=1)
+        ##pooled = torch.mean(transformer_output, dim=1)
+        mask = attention_mask.unsqueeze(-1).float()
+        summed = (transformer_output * mask).sum(dim = 1)
+        denom = mask.sum(dim = 1).clamp(1e-6)
+        pooled = summed/denom
 
         x = self.classifier(pooled)
         return x
